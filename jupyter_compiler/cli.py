@@ -1,12 +1,12 @@
-# import pretty print
+import json
 import logging
-from pprint import pprint
 
 import click
 import nbformat
 import papermill as pm
 
 from .analyzer import analyze_notebook, tag_pragma_cell
+from .build import build as build_image
 from .output import extract_output
 
 LOG = logging.getLogger(__name__)
@@ -18,8 +18,11 @@ def main():
 
 
 @click.group()
-def launcher():
-    pass
+@click.argument("notebook-path", type=click.Path(exists=True))
+@click.pass_context
+def launcher(ctx, notebook_path):
+    # bind notebook path to context
+    ctx.obj = {"notebook_path": notebook_path}
 
 
 @main.command()
@@ -32,7 +35,7 @@ def analyze(notebook_path, output, attach, force):
 
     result = analyze_notebook(notebook_path, force=force)
     # pretty print the result
-    pprint(result, indent=4)
+    click.echo(result)
 
     if output:
         with open(output, "w") as f:
@@ -53,13 +56,13 @@ def analyze(notebook_path, output, attach, force):
 
 
 @launcher.command()
-@click.argument("notebook-path", type=click.Path(exists=True))
 @click.option("--output", "-o", type=click.Path(), default=None)
 @click.option("--parameters-path", "-p", type=click.Path(), default=None)
 @click.option("--force", "-f", is_flag=True, default=False)
 @click.pass_context
-def run(ctx, notebook_path, output, parameters_path, force):
+def run(ctx, output, parameters_path, force):
     """Launch a notebook."""
+    notebook_path = ctx.obj["notebook_path"]
 
     # check if the notebook contains convect metadata
     nb = nbformat.read(notebook_path, as_version=4)
@@ -77,14 +80,14 @@ def run(ctx, notebook_path, output, parameters_path, force):
 
     # extract output dataframe from the notebook
     output_dfs = extract_output(result)
-    pprint(output_dfs, indent=4)
+    click.echo(output_dfs)
 
 
 @launcher.command()
-@click.argument("notebook-path", type=click.Path(exists=True))
 @click.pass_context
-def spec(ctx, notebook_path):
+def spec(ctx):
     """Generate a spec file for a notebook."""
+    notebook_path = ctx.obj["notebook_path"]
 
     # check if the notebook contains convect metadata
     nb = nbformat.read(notebook_path, as_version=4)
@@ -96,14 +99,14 @@ def spec(ctx, notebook_path):
         nb = nbformat.read(notebook_path, as_version=4)
 
     # return the parameters section of the metadata
-    pprint(nb.metadata["convect"]["parameter_schema"], indent=4)
+    click.echo(json.dumps(nb.metadata["convect"]["parameter_schema"]))
 
 
 @launcher.command()
-@click.argument("notebook-path", type=click.Path(exists=True))
 @click.pass_context
-def schema(ctx, notebook_path):
+def schema(ctx):
     """Generate a schema file for a notebook."""
+    notebook_path = ctx.obj["notebook_path"]
 
     # check if the notebook contains convect metadata
     nb = nbformat.read(notebook_path, as_version=4)
@@ -115,8 +118,24 @@ def schema(ctx, notebook_path):
         nb = nbformat.read(notebook_path, as_version=4)
 
     # return the input_schema and output_schema sections of the metadata
-    pprint(nb.metadata["convect"]["input_schema"], indent=4)
-    pprint(nb.metadata["convect"]["output_schema"], indent=4)
+    click.echo(
+        json.dumps(
+            {
+                "input_schema": nb.metadata["convect"]["input_schema"],
+                "output_schema": nb.metadata["convect"]["output_schema"],
+            }
+        )
+    )
+
+
+@main.command()
+@click.argument("notebook-path", type=click.Path(exists=True))
+@click.option("--clear-cache", is_flag=True, default=False)
+def build(notebook_path, clear_cache):
+    """
+    Build a runnable docker image for a ntoebook.
+    """
+    build_image(notebook_path, clear_cache=clear_cache)
 
 
 def cli():

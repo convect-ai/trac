@@ -7,6 +7,7 @@ with open("requirements.txt") as f:
 dev_requirements = [
     "pre-commit",
     "pytest",
+    "wheel",
 ]
 
 with open("README.md", "r") as fh:
@@ -15,7 +16,7 @@ with open("README.md", "r") as fh:
 setup(
     name="jupyter-compiler",
     version="0.1.0",
-    description="A tool to compile Jupyter notebooks into Python scripts",
+    description="A tool to compile Jupyter notebooks into runnable Docker images",
     author="Yuhui Shi",
     packages=find_packages(),
     exclude=["tests", "tests.*"],
