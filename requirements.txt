@@ -1,0 +1,6 @@
+nbformat
+tableschema
+ipython
+pandas
+lxml
+click
