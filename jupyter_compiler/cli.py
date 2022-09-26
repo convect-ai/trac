@@ -6,6 +6,7 @@ import click
 import nbformat
 import papermill as pm
 from analyzer import analyze_notebook, tag_pragma_cell
+from output import extract_output
 
 LOG = logging.getLogger(__name__)
 
@@ -73,9 +74,9 @@ def run(ctx, notebook_path, output, parameters_path, force):
         parameters_path=parameters_path,
     )
 
-    if not output:
-        LOG.info("Notebook executed successfully.")
-        pprint(result, indent=4)
+    # extract output dataframe from the notebook
+    output_dfs = extract_output(result)
+    pprint(output_dfs, indent=4)
 
 
 @launcher.command()
