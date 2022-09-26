@@ -3,7 +3,7 @@ from pprint import pprint
 
 import click
 import nbformat
-from analyzer import analyze_notebook
+from analyzer import analyze_notebook, tag_pragma_cell
 
 
 @click.group()
@@ -31,6 +31,11 @@ def analyze(notebook_path, output, attach, force):
         # modify the notebook metadata
         nb = nbformat.read(notebook_path, as_version=4)
         nb.metadata["convect"] = result
+
+        # tag cells with pragma labels with tags
+        labels = ["INPUT", "OUTPUT", "PARAMETER"]
+        for label in labels:
+            tag_pragma_cell(nb, label)
 
         # write the notebook
         nbformat.write(nb, notebook_path)
