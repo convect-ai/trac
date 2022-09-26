@@ -1,0 +1,38 @@
+# precommit configurations
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.4.0
+    hooks:
+    - id: fix-byte-order-marker
+    - id: check-ast
+    - id: check-case-conflict
+    - id: check-json
+    - id: check-yaml
+      args: [--allow-multiple-documents]
+    - id: debug-statements
+    - id: end-of-file-fixer
+    - id: trailing-whitespace
+    - id: mixed-line-ending
+    - id: pretty-format-json
+      args:
+          - "--autofix"
+          - "--indent=4"
+          - "--no-sort-keys"
+      exclude: |
+          (?x)^(
+            web-frontend/public/locales/zh/translation.json|
+            web-frontend/public/locales/en/translation.json|
+            web-frontend/package.json|
+            web-frontend/public/manifest.json
+          )$
+    - id: requirements-txt-fixer
+-   repo: https://github.com/psf/black
+    rev: 22.3.0
+    hooks:
+    -   id: black
+        exclude: 'settings.py'
+-   repo: https://github.com/pycqa/isort
+    rev: 5.7.0
+    hooks:
+    - id: isort
+      args: ["--profile", "black"]
