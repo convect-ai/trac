@@ -10,7 +10,6 @@ from typing import List
 import nbformat
 import pandas as pd
 import tableschema
-
 from jupyter_compiler.constant import STDLIB_NAME
 
 

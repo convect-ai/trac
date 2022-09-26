@@ -2,7 +2,6 @@ import pathlib
 import tempfile
 
 import pytest
-
 from jupyter_compiler.analyzer import (
     analyze_notebook,
     convert_parameter_descriptor_to_jsonschema,
@@ -17,7 +16,7 @@ from jupyter_compiler.analyzer import (
     read_notebook,
     scan_imports,
     scan_pragma_cells,
-    tag_pragma_cell
+    tag_pragma_cell,
 )
 
 RESOURCE_PATH = pathlib.Path(__file__).parent / "resources"
