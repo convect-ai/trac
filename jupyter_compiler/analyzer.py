@@ -57,7 +57,9 @@ def tag_pragma_cell(nb, pragma_label):
                 if "tags" not in cell.metadata:
                     cell.metadata.tags = [pragma_label_plural.lower()]
                 else:
-                    cell.metadata.tags.append(pragma_label_plural.lower())
+                    # if the cell already have pragma tags, don't add it again
+                    if pragma_label_plural.lower() not in cell.metadata.tags:
+                        cell.metadata.tags.append(pragma_label_plural.lower())
     return nb
 
 
