@@ -4,13 +4,14 @@ import hashlib
 import os
 import pathlib
 import re
-from jupyter_compiler.constant import STDLIB_NAME
 import tempfile
 from typing import List
 
 import nbformat
 import pandas as pd
 import tableschema
+
+from jupyter_compiler.constant import STDLIB_NAME
 
 
 # read a notebook file using nbformat
@@ -41,6 +42,23 @@ def scan_pragma_cells(nb, pragma_label):
                 if pragma_label in cell.source:
                     pragma_cells.append(cell)
     return pragma_cells
+
+
+def tag_pragma_cell(nb, pragma_label):
+    """
+    Tag a cell that starts with '# PRAGMA {pragma_label}' with the pragma_label
+    """
+    # plurize the pragma label
+    pragma_label_plural = pragma_label + "s"
+
+    for cell in nb.cells:
+        if cell.cell_type == "code":
+            if cell.source.startswith(f"# PRAGMA {pragma_label}"):
+                if "tags" not in cell.metadata:
+                    cell.metadata.tags = [pragma_label_plural.lower()]
+                else:
+                    cell.metadata.tags.append(pragma_label_plural.lower())
+    return nb
 
 
 # infer the package name from an import statement,

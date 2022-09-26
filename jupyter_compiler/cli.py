@@ -3,7 +3,6 @@ from pprint import pprint
 
 import click
 import nbformat
-
 from analyzer import analyze_notebook
 
 

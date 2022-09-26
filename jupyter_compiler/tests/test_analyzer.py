@@ -16,7 +16,8 @@ from jupyter_compiler.analyzer import (
     infer_parameter_name_and_value,
     read_notebook,
     scan_imports,
-    scan_pragma_cells
+    scan_pragma_cells,
+    tag_pragma_cell
 )
 
 RESOURCE_PATH = pathlib.Path(__file__).parent / "resources"
@@ -52,6 +53,42 @@ def test_scan_pragama_cells(simple_notebook):
     pragma_label = "PARAMETER"
     pragma_cells = scan_pragma_cells(simple_notebook, pragma_label)
     assert len(pragma_cells) == 1
+
+
+def test_cell_tagging(simple_notebook):
+    tag_pragma_cell(simple_notebook, "INPUT")
+    tag_pragma_cell(simple_notebook, "OUTPUT")
+    tag_pragma_cell(simple_notebook, "PARAMETER")
+
+    # one cell contains a tag "input"
+    assert (
+        len(
+            [c for c in simple_notebook.cells if "inputs" in c.metadata.get("tags", [])]
+        )
+        == 1
+    )
+    # once cell contains a tag "output"
+    assert (
+        len(
+            [
+                c
+                for c in simple_notebook.cells
+                if "outputs" in c.metadata.get("tags", [])
+            ]
+        )
+        == 1
+    )
+    # once cell contains a tag "parameter"
+    assert (
+        len(
+            [
+                c
+                for c in simple_notebook.cells
+                if "parameters" in c.metadata.get("tags", [])
+            ]
+        )
+        == 1
+    )
 
 
 def test_infer_package_name():
