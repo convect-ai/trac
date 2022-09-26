@@ -5,8 +5,9 @@ from pprint import pprint
 import click
 import nbformat
 import papermill as pm
-from analyzer import analyze_notebook, tag_pragma_cell
-from output import extract_output
+
+from .analyzer import analyze_notebook, tag_pragma_cell
+from .output import extract_output
 
 LOG = logging.getLogger(__name__)
 
@@ -118,8 +119,10 @@ def schema(ctx, notebook_path):
     pprint(nb.metadata["convect"]["output_schema"], indent=4)
 
 
-if __name__ == "__main__":
-    # add two subcommands to the main command
+def cli():
     main.add_command(launcher)
-
     main()
+
+
+if __name__ == "__main__":
+    cli()

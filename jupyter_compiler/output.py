@@ -1,6 +1,6 @@
-import nbformat
 import pandas as pd
-from analyzer import scan_pragma_cells
+
+from .analyzer import scan_pragma_cells
 
 
 def get_output_dataframe(cell):

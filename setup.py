@@ -21,6 +21,12 @@ setup(
     exclude=["tests", "tests.*"],
     install_requires=requirements,
     extras_require={"dev": dev_requirements},
+    # script entrypoint
+    entry_points={
+        "console_scripts": [
+            "jupyter-compiler = jupyter_compiler.cli:cli",
+        ],
+    },
     long_description=long_description,
     long_description_content_type="text/markdown",
 )
