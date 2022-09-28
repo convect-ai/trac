@@ -71,11 +71,18 @@ def run(ctx, output, parameters_path, force):
         LOG.info("Running analysis...")
         ctx.invoke(analyze, notebook_path=notebook_path, attach=True)
 
+    # read the parameters
+    if parameters_path:
+        with open(parameters_path, "r") as f:
+            parameters = json.load(f)
+    else:
+        parameters = None
+
     # run the notebook with papermill
     result = pm.execute_notebook(
         notebook_path,
         output,
-        parameters_path=parameters_path,
+        parameters=parameters,
     )
 
     # extract output dataframe from the notebook

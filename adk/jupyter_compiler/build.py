@@ -43,6 +43,7 @@ def build(notebook_path, clear_cache=False):
             packages = metadata["packages"]
             # add common packages, papermill, jupyter-complier to the packages
             packages.append("papermill")
+            packages.append("ipykernel")
             # add a local reference to jupyter-compiler wheel
             packages.append(f"./jupyter_compiler-0.1.0-py3-none-any.whl")
 
@@ -111,7 +112,7 @@ def build(notebook_path, clear_cache=False):
             "--buildpack",
             "gcr.io/paketo-buildpacks/python",
             "--builder",
-            "gcr.io/paketo-buildpacks/builder:base",
+            "docker.io/paketobuildpacks/builder:full",
             "--path",
             tmpdir,
         ]
