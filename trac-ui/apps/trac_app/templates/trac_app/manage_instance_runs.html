@@ -1,0 +1,61 @@
+<!-- The dashboard page for managing an instance -->
+
+
+<div class="container">
+    <!-- a button to create a new run, aligned to right -->
+    <div class="row justify-content-end">
+        <div class="col-md-2">
+            <a href="{% url 'app_run:create_run' instance_id %}" class="btn btn-primary float-end">Create a run</a>
+        </div>
+    </div>
+
+    <!-- a table to show all runs -->
+    <div class="row">
+        <div class="col-md-12">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Run Name</th>
+                        <th scope="col">Run Description</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for run in runs %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'app_run:view_result' instance_id run.id %}">
+                                {{ run.name }}
+                            </a>
+                        </td>
+                        <td>{{ run.description }}</td>
+                        <td>
+                            {{ run.status }}
+                        </td>
+                        <!-- A dropdown menu with more_event icon -->
+                        <td>
+                            <div class="dropdown">
+                                <a class="btn btn-secondary dropdown-toggle" href="#" role="button"
+                                    id="dropdownMenuLink" data-bs-toggle="dropdown" aria-haspopup="true"
+                                    aria-expanded="false">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </a>
+                                <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                                    <a class="dropdown-item"
+                                        href="{% url 'app_run:update_run' instance_id run.id %}">Edit</a>
+                                    <form action="{% url 'app_run:delete_run' instance_id run.id %}">
+                                        {% csrf_token %}
+                                        <a type="submit" class="dropdown-item">Delete</a>
+                                    </form>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>

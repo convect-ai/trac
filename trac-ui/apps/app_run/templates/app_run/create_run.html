@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'trac_app:dashboard' instance_id %}">Runs</a></li>
+    <li class="breadcrumb-item active">
+      Create
+    </li>
+  </ol>
+</nav>
+
+<div class="row justify-content-center">
+  <div class="col-md-8">
+
+    <form action="" method="post" id="create-run-form">
+      {% csrf_token %}
+      {{ form|crispy }}
+
+      <div class="row justify-content-end">
+        <div class="col-md-3">
+          <div class="float-end">
+
+            <a href="{% url 'trac_app:dashboard' instance_id %}" class="btn">Cancel</a>
+            <button type="submit" class="btn btn-primary" id="create-run-form-submit">Save</button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block script %}
+
+<script>
+  // When the user click the form submit button, show a loading spinner
+  // and disable the submit button to prevent multiple submissions.
+  $(document).ready(function() {
+    $('#create-run-form').submit(function() {
+      $('#create-run-form-submit').attr('disabled', true);
+      $('#create-run-form-submit').html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...');
+    });
+  });
+</script>
+
+{% endblock %}

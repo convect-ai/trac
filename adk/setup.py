@@ -14,7 +14,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
-    name="jupyter-compiler",
+    name="trac-cli",
     version="0.1.0",
     description="A tool to compile Jupyter notebooks into runnable Docker images",
     author="Yuhui Shi",
@@ -25,7 +25,7 @@ setup(
     # script entrypoint
     entry_points={
         "console_scripts": [
-            "jupyter-compiler = jupyter_compiler.cli:cli",
+            "trac-cli = trac.cli:cli",
         ],
     },
     long_description=long_description,

@@ -1,0 +1,60 @@
+<!-- The dashboard page for managing an instance -->
+<div class="container">
+    <!-- a button to register a new dataset, aligned to right -->
+    <div class="row justify-content-end">
+        <div class="col-md-2">
+            <a href="{% url 'data_gateway:create_dataset' instance_id %}" class="btn btn-primary float-end">Create a
+                dataset</a>
+        </div>
+    </div>
+
+    <!-- a table to show all datasets -->
+    <div class="row">
+        <div class="col-md-12">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Dataset Name</th>
+                        <th scope="col">Dataset Description</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for dataset in datasets %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'data_gateway:view_input' instance_id dataset.id %}">
+                                {{ dataset.name }}
+                            </a>
+                        </td>
+                        <td>{{ dataset.description }}</td>
+                        <!-- A dropdown menu with more_event icon -->
+                        <td>
+                            <div class="dropdown">
+                                <a class="btn btn-secondary dropdown-toggle" href="#" role="button"
+                                    id="dropdownMenuLink" data-bs-toggle="dropdown" aria-haspopup="true"
+                                    aria-expanded="false">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                                    <li>
+                                        <a class="dropdown-item"
+                                            href="{% url 'data_gateway:update_dataset' instance_id dataset.id %}">Edit</a>
+                                    </li>
+                                    <li>
+                                        <!-- A delete form -->
+                                        <form action="{% url 'data_gateway:delete_dataset' instance_id dataset.id %}">
+                                            {% csrf_token %}
+                                            <a class="dropdown-item" type="submit">Delete</a>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
