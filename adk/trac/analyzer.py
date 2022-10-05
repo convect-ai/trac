@@ -94,17 +94,24 @@ def find_read_data_statements(cell_source: str) -> List[str]:
     for node in ast.walk(ast_tree):
         if isinstance(node, ast.Call):
             if isinstance(node.func, ast.Attribute):
-                if node.func.value.id in {"pd", "pandas"} and node.func.attr.startswith(
-                    "read_"
-                ):
-                    # return the current node in source code form
-                    statements.append(ast.get_source_segment(cell_source, node))
+                try:
+                    if node.func.value.id in {
+                        "pd",
+                        "pandas",
+                    } and node.func.attr.startswith("read_"):
+                        # return the current node in source code form
+                        statements.append(ast.get_source_segment(cell_source, node))
+                except AttributeError:
+                    pass
             elif isinstance(node.func, ast.Name):
-                if node.func.id in {"pd", "pandas"} and node.args[0].s.startswith(
-                    "read_"
-                ):
-                    # return the current node in source code form
-                    statements.append(ast.get_source_segment(cell_source, node))
+                try:
+                    if node.func.id in {"pd", "pandas"} and node.args[0].s.startswith(
+                        "read_"
+                    ):
+                        # return the current node in source code form
+                        statements.append(ast.get_source_segment(cell_source, node))
+                except AttributeError:
+                    pass
 
     return statements
 
@@ -411,10 +418,12 @@ def analyze_notebook(notebook_path, force=False) -> dict:
             if not data_path.startswith("/"):
                 # if the data path is relative, we need to get the notebook directory
                 notebook_dir = os.path.dirname(notebook_path)
-                data_path = os.path.join(notebook_dir, data_path)
+                readable_data_path = os.path.join(notebook_dir, data_path)
+            else:
+                readable_data_path = data_path
 
             # get the schema of the data
-            schema = infer_data_schema(data_path)
+            schema = infer_data_schema(readable_data_path)
             # convert to jsonschema
             jsonschema = convert_tableschema_descriptor_to_jsonschema(schema)
             jsonschema["title"] = file_name

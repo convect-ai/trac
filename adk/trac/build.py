@@ -34,7 +34,7 @@ def build(notebook_path, clear_cache=False):
         LOG.info(f"Created temporary directory {tmpdir}")
         # copy the notebook to the temporary directory
         nbformat.write(nb, f"{tmpdir}/notebook.ipynb")
-        # TODO: copy the jupyter-compiler wheel to the temporary directory
+        # TODO: copy the trac-cli wheel to the temporary directory
         # if the package is published to pypi, we do not need this step
         dest_path = shutil.copy(PKG_WHEEL, tmpdir)
 
@@ -44,20 +44,20 @@ def build(notebook_path, clear_cache=False):
             # add common packages, papermill, jupyter-complier to the packages
             packages.append("papermill")
             packages.append("ipykernel")
-            # add a local reference to jupyter-compiler wheel
+            # add a local reference to trac-cli wheel
             packages.append(f"./trac_cli-0.1.0-py3-none-any.whl")
 
             f.write("\n".join(metadata["packages"]))
             LOG.info(f"Created requirements.txt file {tmpdir}/requirements.txt")
             LOG.info(f"Requirements: {packages}")
 
-        # create an entrypoint.sh file, which is a thin wrapper around jupyter-compiler launcher notebook.ipynb
+        # create an entrypoint.sh file, which is a thin wrapper around trac-cli launcher notebook.ipynb
         with open(f"{tmpdir}/entrypoint.sh", "w") as f:
             # shebang
             f.write("#!/usr/bin/env bash\n")
             # echo the command
-            # pass all the arguments (except first) to jupyter-compiler launcher
-            f.write("jupyter-compiler launcher notebook.ipynb ${@:2}\n")
+            # pass all the arguments (except first) to trac-cli launcher
+            f.write("trac-cli launcher notebook.ipynb ${@:2}\n")
             # make the file executable
             os.chmod(f"{tmpdir}/entrypoint.sh", 0o755)
 
@@ -65,7 +65,7 @@ def build(notebook_path, clear_cache=False):
         with open(f"{tmpdir}/Procfile", "w") as f:
             f.write("web: ./entrypoint.sh")
             LOG.info(f"Created Procfile {tmpdir}/Procfile")
-            LOG.info("Procfile: web: jupyter-compiler launcher notebook.ipynb")
+            LOG.info("Procfile: web: trac-cli launcher notebook.ipynb")
 
         # list the files in the temporary directory
         LOG.info(f"Files in the temporary directory {tmpdir}")
