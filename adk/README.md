@@ -21,17 +21,26 @@ pip install .
 Run analysis (metadata generation on a notebook)
 ```bash
 cd examples
-jupyter-compiler analyze simple.ipynb --attach
+trac-cli init simple.ipynb
 ```
 
 Pack the notebook in a runnable docker image
 ```bash
-jupyter-compiler build simple.ipynb
+trac-cli build simple.ipynb
 ```
 
 Run the docker image
 ```bash
 docker run --rm simple-runner -- --help
+```
+
+Publish the notebook as an app
+```bash
+# start the trac UI
+cd trac-ui
+python manage.py runserver 9000
+
+trac-cli deploy simple.ipynb --endpoint http://localhost:9000
 ```
 
 ## For notebook author
