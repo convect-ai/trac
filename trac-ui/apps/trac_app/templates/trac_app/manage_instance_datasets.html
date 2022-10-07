@@ -42,6 +42,10 @@
                                             href="{% url 'data_gateway:update_dataset' instance_id dataset.id %}">Edit</a>
                                     </li>
                                     <li>
+                                        <a class="dropdown-item"
+                                            href="{% url 'data_gateway:dataset_swagger_ui' dataset.id %}">API Spec</a>
+                                    </li>
+                                    <li>
                                         <!-- A delete form -->
                                         <form action="{% url 'data_gateway:delete_dataset' instance_id dataset.id %}">
                                             {% csrf_token %}

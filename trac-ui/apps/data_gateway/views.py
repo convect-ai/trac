@@ -2,12 +2,14 @@ import json
 
 from apps.trac_app.models import AppInstance
 from django.db import transaction
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from runtime.local import RuntimeFactory
 
 from .forms import DatasetForm
 from .models import DataSet, Resource
+from .schema_utils import generate_openapi_schema_for_dataset
 
 
 def create_dataset(request, instance_id):
@@ -175,3 +177,27 @@ def dataset_input_view_save(request, instance_id, dataset_id):
 
     else:
         return HttpResponse(status=400, reason="Bad Request")
+
+
+def dataset_api_spec(request, dataset_id):
+    """
+    Generate a swagger spec for a dataset
+    """
+    dataset = DataSet.objects.get(id=dataset_id)
+    oas_schema = generate_openapi_schema_for_dataset(dataset)
+
+    # return a json response wrapping the oas_schema
+    return JsonResponse(oas_schema)
+
+
+def dataset_api_swagger_ui(request, dataset_id):
+    """
+    Return a swagger UI that renders the spec
+    """
+    return render(
+        request,
+        "data_gateway/swagger_ui.html",
+        {
+            "schema_url": reverse("data_gateway:dataset_api_spec", args=[dataset_id]),
+        },
+    )
