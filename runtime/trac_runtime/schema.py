@@ -2,7 +2,7 @@
 
 
 from enum import Enum
-from typing import List, Tuple
+from typing import Any, Dict, List, Tuple
 
 from jsonschema import Draft202012Validator
 from pydantic import BaseModel, Field, validator
@@ -52,7 +52,7 @@ class ContainerDef(BaseModel):
     envs: List[Tuple[str, str]] = []
 
 
-class TaskSpec(BaseModel):
+class TaskDef(BaseModel):
     name: str = Field(..., description="Name of the task")
     description: str = Field(..., description="Description of the task")
     parameters: List[ParameterDef] = Field(..., description="List of parameters")
@@ -64,7 +64,16 @@ class TaskSpec(BaseModel):
     container: ContainerDef = Field(..., description="Container definition")
 
 
-class AppSpec(BaseModel):
+class AppDef(BaseModel):
     name: str = Field(..., description="Name of the app")
     description: str = Field(..., description="Description of the app")
-    tasks: List[TaskSpec] = Field(..., description="List of tasks")
+    tasks: List[TaskDef] = Field(..., description="List of tasks")
+
+
+class RunConfig(BaseModel):
+    """
+    Configs for a concrete task, including the parameter values, the input and output file locations
+    """
+
+    parameters: Dict[str, Any] = Field(..., description="Parameter values")
+    input_files: Dict[str, str] = Field(..., description="Input file locations")

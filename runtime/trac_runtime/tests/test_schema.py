@@ -1,5 +1,5 @@
 import pytest
-from trac_runtime.schema import AppSpec, TaskSpec
+from trac_runtime.schema import AppDef, TaskDef
 
 
 @pytest.fixture
@@ -69,7 +69,7 @@ def valid_app_spec(valid_task_spec):
 
 
 def test_task_spec_parsing(valid_task_spec):
-    task_spec = TaskSpec.parse_obj(valid_task_spec)
+    task_spec = TaskDef.parse_obj(valid_task_spec)
     assert task_spec.name == "task1"
     assert task_spec.description == "task1 description"
     assert len(task_spec.parameters) == 2
@@ -82,7 +82,7 @@ def test_task_spec_parsing(valid_task_spec):
 
 
 def test_app_spec_parsing(valid_app_spec):
-    app_spec = AppSpec.parse_obj(valid_app_spec)
+    app_spec = AppDef.parse_obj(valid_app_spec)
     assert app_spec.name == "app1"
     assert app_spec.description == "app1 description"
     assert len(app_spec.tasks) == 1
