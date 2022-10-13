@@ -22,6 +22,8 @@ class BaseExecutor(ABC):
         self.task_spec = task_spec
         self.run_config = run_config
 
+        self.compiled_task = None
+
     @abstractmethod
     def compile(self):
         """
@@ -29,7 +31,7 @@ class BaseExecutor(ABC):
         """
 
     @abstractmethod
-    def submit(self, compiled_task):
+    def submit(self):
         """
         Submit the compiled task to the executor
         """

@@ -3,81 +3,26 @@ from trac_runtime.schema import AppDef, TaskDef
 
 
 @pytest.fixture
-def valid_task_spec():
-    return {
-        "name": "task1",
-        "description": "task1 description",
-        "parameters": [
-            {
-                "name": "param1",
-                "type": "string",
-                "default": "default",
-                "description": "param1 description",
-            },
-            {
-                "name": "param2",
-                "type": "integer",
-                "default": 0,
-                "description": "param2 description",
-            },
-        ],
-        "files": [
-            {
-                "name": "file1",
-                "type": "input",
-                "mount_path": "/mnt/file1",
-                "description": "file1 description",
-                "file_schema": {
-                    "type": "object",
-                    "properties": {
-                        "name": {"type": "string"},
-                        "age": {"type": "integer"},
-                    },
-                },
-            },
-            {
-                "name": "file2",
-                "type": "output",
-                "mount_path": "/mnt/file2",
-                "description": "file2 description",
-                "file_schema": {
-                    "type": "object",
-                    "properties": {
-                        "name": {"type": "string"},
-                        "age": {"type": "integer"},
-                    },
-                },
-            },
-        ],
-        "container": {
-            "image": "image1",
-            "tag": "tag1",
-            "command": ["command1"],
-            "args": ["arg1"],
-            "envs": [["env1", "value1"]],
-        },
-    }
-
-
-@pytest.fixture
-def valid_app_spec(valid_task_spec):
+def valid_app_spec(task_spec):
     return {
         "name": "app1",
         "description": "app1 description",
-        "tasks": [valid_task_spec],
+        "tasks": [task_spec],
     }
 
 
-def test_task_spec_parsing(valid_task_spec):
-    task_spec = TaskDef.parse_obj(valid_task_spec)
+def test_task_spec_parsing(task_spec):
+    task_spec = TaskDef.parse_obj(task_spec)
     assert task_spec.name == "task1"
     assert task_spec.description == "task1 description"
     assert len(task_spec.parameters) == 2
     assert len(task_spec.files) == 2
-    assert task_spec.container.image == "image1"
-    assert task_spec.container.tag == "tag1"
-    assert task_spec.container.command == ["command1"]
-    assert task_spec.container.args == ["arg1"]
+    assert task_spec.container.image == "busybox"
+    assert task_spec.container.tag == "latest"
+    assert task_spec.container.command == ["sh", "-c"]
+    assert task_spec.container.args == [
+        "cat /mnt/file1 > /mnt/file2; echo 'hello world' >> /mnt/file2; echo 'hello world'"
+    ]
     assert task_spec.container.envs == [("env1", "value1")]
 
 

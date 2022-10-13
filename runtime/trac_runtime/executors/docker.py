@@ -17,19 +17,24 @@ class LocalDockerExecutor(BaseExecutor):
     Executor for running tasks locally using docker
     """
 
+    def __init__(self, task_def: TaskDef, run_config: RunConfig):
+        super().__init__(task_def, run_config)
+        self.docker_client = docker.from_env()
+
     def compile(self):
         """
         For the compile step, we do nothing but return the task_spec
         """
         return self.task_spec
 
-    def submit(self, compiled_task):
+    def submit(self):
         """
         For submit step, we create a docker container as specified by task_spec on the background
         and return its id as job handle
         """
-
-        client = docker.from_env()
+        client = self.docker_client
+        self.compiled_task = self.compile()
+        compiled_task = self.compiled_task
 
         entrypoint = compiled_task.container.command
         command = compiled_task.container.args
@@ -93,7 +98,7 @@ class LocalDockerExecutor(BaseExecutor):
         """
         Given a container id, return its status
         """
-        client = docker.from_env()
+        client = self.docker_client
         container = client.containers.get(job_handle)
         status = container.status
 
@@ -116,7 +121,7 @@ class LocalDockerExecutor(BaseExecutor):
         """
         Given a container id, return the output files as a dictionary
         """
-        client = docker.from_env()
+        client = self.docker_client
         container = client.containers.get(job_handle)
         # make sure the container is finished
         if container.status != "exited":
@@ -141,7 +146,7 @@ class LocalDockerExecutor(BaseExecutor):
         """
         Given a container id, return its logs as a string
         """
-        client = docker.from_env()
+        client = self.docker_client
         container = client.containers.get(job_handle)
         return container.logs().decode()
 
@@ -149,7 +154,7 @@ class LocalDockerExecutor(BaseExecutor):
         """
         Given a container id, cancel the container
         """
-        client = docker.from_env()
+        client = self.docker_client
         container = client.containers.get(job_handle)
         container.stop()
 
@@ -157,6 +162,6 @@ class LocalDockerExecutor(BaseExecutor):
         """
         Given a container id, delete the container
         """
-        client = docker.from_env()
+        client = self.docker_client
         container = client.containers.get(job_handle)
         container.remove()
