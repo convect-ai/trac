@@ -15,4 +15,7 @@ def test_k8s_executor(task_spec, run_config):
     logs = executor.get_logs(job_handle)
     assert logs
 
+    outputs = executor.get_output(job_handle)
+    assert outputs["file2"] == b"hello worldhello world\n"
+
     executor.delete(job_handle)

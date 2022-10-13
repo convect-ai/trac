@@ -188,6 +188,48 @@ class K8sExecutor(BaseExecutor):
             )
         )
 
+        # for each output file, create a sidecar container that will monitor the file and cat the file content to stdout
+        # this is a hacky way to get the output file content, need to find a better way
+        output_files = [f for f in self.task_spec.files if f.type == FILE_TYPE.OUTPUT]
+        for f in output_files:
+            compiled_task.spec.template.spec.containers.append(
+                self.k8s_client.V1Container(
+                    name=f.name,
+                    image="busybox",
+                    command=["sh", "-c"],
+                    # wait for the file to be created, and then cat the file content to stdout
+                    args=[
+                        "while [ ! -f "
+                        + f.mount_path
+                        + " ]; do sleep 1; done; cat "
+                        + f.mount_path
+                    ],
+                    volume_mounts=[],
+                )
+            )
+
+            # create an emptyDir volume for the output file and mount it to the sidecar container and the main container
+            compiled_task.spec.template.spec.volumes.append(
+                self.k8s_client.V1Volume(
+                    name=f.name,
+                    empty_dir=self.k8s_client.V1EmptyDirVolumeSource(),
+                )
+            )
+
+            compiled_task.spec.template.spec.containers[-1].volume_mounts.append(
+                self.k8s_client.V1VolumeMount(
+                    name=f.name,
+                    mount_path=os.path.dirname(f.mount_path),
+                )
+            )
+
+            compiled_task.spec.template.spec.containers[0].volume_mounts.append(
+                self.k8s_client.V1VolumeMount(
+                    name=f.name,
+                    mount_path=os.path.dirname(f.mount_path),
+                )
+            )
+
         return compiled_task
 
     def get_status(self, job_handle):
@@ -214,7 +256,31 @@ class K8sExecutor(BaseExecutor):
         Get the content of the output files as specified by task_spec from the job pod
         and return it as a dictionary
         """
-        raise NotImplementedError
+        # get the log of the job pod, with container name as the output file name
+        output_files = [f for f in self.task_spec.files if f.type == FILE_TYPE.OUTPUT]
+        output = {}
+
+        # find the pod name of the job
+        pod_name = (
+            self.k8s_client.CoreV1Api()
+            .list_namespaced_pod(
+                namespace="default",
+                label_selector="job-name=" + job_handle,
+            )
+            .items[0]
+            .metadata.name
+        )
+
+        for f in output_files:
+            log = self.k8s_client.CoreV1Api().read_namespaced_pod_log(
+                name=pod_name,
+                namespace="default",
+                container=f.name,
+            )
+            # return the log as bytes
+            output[f.name] = log.encode("utf-8")
+
+        return output
 
     def get_logs(self, job_handle):
         """
@@ -230,10 +296,11 @@ class K8sExecutor(BaseExecutor):
             .items[0]
             .metadata.name
         )
-        # get the logs of the pod
+        # get the logs of the pod, with the container name as the task name
         logs = self.k8s_client.CoreV1Api().read_namespaced_pod_log(
             name=pod_name,
             namespace="default",
+            container=self.task_spec.name,
         )
         return logs
 
