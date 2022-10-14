@@ -69,9 +69,10 @@ class LocalDockerExecutor(BaseExecutor):
         parameter_file.write(json.dumps(parameters).encode())
         parameter_file.close()
 
+        parameter_mount_point = self.task_spec.parameters.mount_path
         vols = {
             parameter_file.name: {
-                "bind": "/parameters.json",
+                "bind": parameter_mount_point,
                 "mode": "ro",
             }
         }
@@ -80,7 +81,7 @@ class LocalDockerExecutor(BaseExecutor):
 
             # search under task_spec['files'] for the file
             mount_path = None
-            for file_spec in task_spec.files:
+            for file_spec in task_spec.files.files:
                 if file_spec.name == file:
                     mount_path = file_spec.mount_path
                     break
@@ -129,7 +130,7 @@ class LocalDockerExecutor(BaseExecutor):
 
         output_files = {}
 
-        for file in self.task_spec.files:
+        for file in self.task_spec.files.files:
             if file.type == FILE_TYPE.OUTPUT:
                 bits, stat = container.get_archive(file.mount_path)
 

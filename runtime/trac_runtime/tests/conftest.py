@@ -14,48 +14,53 @@ def task_spec():
     spec = {
         "name": "task1",
         "description": "task1 description",
-        "parameters": [
-            {
-                "name": "param1",
-                "type": "string",
-                "default": "default",
-                "description": "param1 description",
-            },
-            {
-                "name": "param2",
-                "type": "integer",
-                "default": 0,
-                "description": "param2 description",
-            },
-        ],
-        "files": [
-            {
-                "name": "file1",
-                "type": "input",
-                "mount_path": "/mnt/file1",
-                "description": "file1 description",
-                "file_schema": {
-                    "type": "object",
-                    "properties": {
-                        "name": {"type": "string"},
-                        "age": {"type": "integer"},
+        "parameters": {
+            "mount_path": "/parameters.json",
+            "parameters": [
+                {
+                    "name": "param1",
+                    "type": "string",
+                    "default": "default",
+                    "description": "param1 description",
+                },
+                {
+                    "name": "param2",
+                    "type": "integer",
+                    "default": 0,
+                    "description": "param2 description",
+                },
+            ],
+        },
+        "files": {
+            "files": [
+                {
+                    "name": "file1",
+                    "type": "input",
+                    "mount_path": "/mnt/file1",
+                    "description": "file1 description",
+                    "file_schema": {
+                        "type": "object",
+                        "properties": {
+                            "name": {"type": "string"},
+                            "age": {"type": "integer"},
+                        },
                     },
                 },
-            },
-            {
-                "name": "file2",
-                "type": "output",
-                "mount_path": "/mnt/file2",
-                "description": "file2 description",
-                "file_schema": {
-                    "type": "object",
-                    "properties": {
-                        "name": {"type": "string"},
-                        "age": {"type": "integer"},
+                {
+                    "name": "file2",
+                    "type": "output",
+                    "mount_path": "/mnt/file2",
+                    "description": "file2 description",
+                    "file_schema": {
+                        "type": "object",
+                        "properties": {
+                            "name": {"type": "string"},
+                            "age": {"type": "integer"},
+                        },
                     },
                 },
-            },
-        ],
+            ]
+        },
         # cat all the input file contents and write a hello world to the output file
         "container": {
             "image": "busybox",

@@ -124,7 +124,9 @@ class K8sExecutor(BaseExecutor):
             body=param_config_map,
         )
 
-        input_files = [f for f in self.task_spec.files if f.type == FILE_TYPE.INPUT]
+        input_files = [
+            f for f in self.task_spec.files.files if f.type == FILE_TYPE.INPUT
+        ]
         # get the location of the input files from run_config
         for f in input_files:
             # TODO: when the output file is located under the same directory as the input file
@@ -180,17 +182,18 @@ class K8sExecutor(BaseExecutor):
                 ),
             )
         )
-
+        parameter_mount_path = self.task_spec.parameters.mount_path
         compiled_task.spec.template.spec.containers[0].volume_mounts.append(
             self.k8s_client.V1VolumeMount(
-                name="parameters",
-                mount_path="/parameters.json",
+                name="parameters", mount_path=parameter_mount_path
             )
         )
 
         # for each output file, create a sidecar container that will monitor the file and cat the file content to stdout
         # this is a hacky way to get the output file content, need to find a better way
-        output_files = [f for f in self.task_spec.files if f.type == FILE_TYPE.OUTPUT]
+        output_files = [
+            f for f in self.task_spec.files.files if f.type == FILE_TYPE.OUTPUT
+        ]
         for f in output_files:
             compiled_task.spec.template.spec.containers.append(
                 self.k8s_client.V1Container(
@@ -257,7 +260,9 @@ class K8sExecutor(BaseExecutor):
         and return it as a dictionary
         """
         # get the log of the job pod, with container name as the output file name
-        output_files = [f for f in self.task_spec.files if f.type == FILE_TYPE.OUTPUT]
+        output_files = [
+            f for f in self.task_spec.files.files if f.type == FILE_TYPE.OUTPUT
+        ]
         output = {}
 
         # find the pod name of the job
