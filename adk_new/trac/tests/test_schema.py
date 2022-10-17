@@ -69,3 +69,20 @@ def test_task_spec_parsing_with_handler(task_spec_using_handler):
     assert task.io.files[1].file_schema["properties"]["age"]["type"] == "integer"
 
     assert task.handler.handler == "module1.handler1:handler1"
+
+
+def test_app_spec_parsing(app_spec):
+    app = AppDef.parse_obj(app_spec)
+
+    assert app.name == "app1"
+    assert app.description == "app1 description"
+    assert app.tasks[0].name == "task1"
+    assert len(app.tasks) == 1
+
+
+def test_run_config_parsing(run_config):
+    config = RunConfig.parse_obj(run_config)
+
+    assert config.parameters["param1"] == "value1"
+    assert config.parameters["param2"] == 1
+    assert config.input_files["file1"]

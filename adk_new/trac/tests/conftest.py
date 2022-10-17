@@ -153,8 +153,23 @@ def run_config(tmp_path):
     input_file1.write_text("hello world")
 
     config = {
-        "parameter": {"param1": "value1", "param2": 1},
+        "parameters": {"param1": "value1", "param2": 1},
         "input_files": {"file1": str(input_file1)},
     }
 
     return config
+
+
+@pytest.fixture
+def app_spec(task_spec):
+    """
+    An app spec with a single task
+    """
+
+    spec = {
+        "name": "app1",
+        "description": "app1 description",
+        "tasks": [task_spec],
+    }
+
+    return spec
