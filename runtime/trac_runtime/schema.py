@@ -22,6 +22,11 @@ class ParameterDef(BaseModel):
     description: str = None
 
 
+class ParametersSpec(BaseModel):
+    mount_path: str  # mount path for the parameter file
+    parameters: List[ParameterDef]
+
+
 class FileDef(BaseModel):
     name: str
     # enum file type, e.g., INPUT, OUTPUT, etc.
@@ -43,7 +48,11 @@ class FileDef(BaseModel):
         return v
 
 
-class ContainerDef(BaseModel):
+class FilesSpec(BaseModel):
+    files: List[FileDef]
+
+
+class ContainerSpec(BaseModel):
     image: str
     tag: str
     command: List[str]
@@ -55,13 +64,13 @@ class ContainerDef(BaseModel):
 class TaskDef(BaseModel):
     name: str = Field(..., description="Name of the task")
     description: str = Field(..., description="Description of the task")
-    parameters: List[ParameterDef] = Field(..., description="List of parameters")
 
-    # list of files, each file has a name, type, mount path, and schema
-    files: List[FileDef] = Field(..., description="List of files")
+    parameters: ParametersSpec = Field(None, description="Parameters for the task")
+
+    files: FilesSpec = Field(None, description="Files for the task")
 
     # container definition
-    container: ContainerDef = Field(..., description="Container definition")
+    container: ContainerSpec = Field(..., description="Container definition")
 
 
 class AppDef(BaseModel):

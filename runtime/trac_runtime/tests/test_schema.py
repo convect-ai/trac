@@ -15,8 +15,8 @@ def test_task_spec_parsing(task_spec):
     task_spec = TaskDef.parse_obj(task_spec)
     assert task_spec.name == "task1"
     assert task_spec.description == "task1 description"
-    assert len(task_spec.parameters) == 2
-    assert len(task_spec.files) == 2
+    assert len(task_spec.parameters.parameters) == 2
+    assert len(task_spec.files.files) == 2
     assert task_spec.container.image == "busybox"
     assert task_spec.container.tag == "latest"
     assert task_spec.container.command == ["sh", "-c"]
