@@ -20,7 +20,7 @@
 
 # [START import]
 from ortools.constraint_solver import pywrapcp, routing_enums_pb2
-from utils import create_data_model
+from vrp_demo_script.utils import create_data_model
 
 # [END import]
 

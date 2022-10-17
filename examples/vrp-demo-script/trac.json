@@ -1,0 +1,105 @@
+{
+    "name": "Vehicle Routing App",
+    "description": "A sample app for the Vehicle Routing problem",
+    "tasks": [
+        {
+            "name": "VRP with Time Windows",
+            "description": "A sample app for the Vehicle Routing problem with time windows",
+            "handler": "vrp_demo_script.main:main",
+            "parameters": {
+                "mount_path": "data/parameters.json",
+                "parameters": [
+                    {
+                        "name": "num_vehicles",
+                        "type": "integer",
+                        "description": "Number of vehicles in the fleet",
+                        "default": 4
+                    },
+                    {
+                        "name": "depot",
+                        "type": "integer",
+                        "description": "Depot location",
+                        "default": 0
+                    }
+                ]
+            },
+            "files": {
+                "files": [
+                    {
+                        "name": "locations",
+                        "mount_path": "data/locations.csv",
+                        "type": "input",
+                        "description": "Locations to visit",
+                        "file_schema": {
+                            "type": "object",
+                            "properties": {
+                                "location": {
+                                    "type": "string",
+                                    "description": "Location name"
+                                },
+                                "x_cord": {
+                                    "type": "number",
+                                    "description": "X coordinate"
+                                },
+                                "y_cord": {
+                                    "type": "number",
+                                    "description": "Y coordinate"
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "name": "time_windows",
+                        "mount_path": "data/time_window.csv",
+                        "type": "input",
+                        "description": "Time windows for each location",
+                        "file_schema": {
+                            "type": "object",
+                            "properties": {
+                                "location": {
+                                    "type": "string",
+                                    "description": "Location name"
+                                },
+                                "start": {
+                                    "type": "number",
+                                    "description": "Start time"
+                                },
+                                "end": {
+                                    "type": "number",
+                                    "description": "End time"
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "name": "solution",
+                        "mount_path": "data/solution.csv",
+                        "type": "output",
+                        "description": "Solution",
+                        "file_schema": {
+                            "type": "object",
+                            "properties": {
+                                "vehicle": {
+                                    "type": "integer",
+                                    "description": "Vehicle number"
+                                },
+                                "location": {
+                                    "type": "string",
+                                    "description": "Location name"
+                                },
+                                "arrival": {
+                                    "type": "number",
+                                    "description": "Arrival time"
+                                },
+                                "departure": {
+                                    "type": "number",
+                                    "description": "Departure time"
+                                }
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}
