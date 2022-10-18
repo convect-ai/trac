@@ -20,6 +20,9 @@ def build_app_image(folder, image_name, clear_cache):
     The folder needs to contain a trac.json file (app spec file) in it.
     """
 
+    # resolve the folder path
+    folder = Path(folder).resolve()
+
     if isinstance(folder, str):
         folder = Path(folder)
 
@@ -50,10 +53,6 @@ def build_app_image(folder, image_name, clear_cache):
         with open(f"{tmpdir}/Procfile", "w") as f:
             f.write("web: ./entrypoint.sh")
 
-        # write a Procfile to the temp folder
-        with open(f"{tmpdir}/Procfile", "w") as f:
-            f.write("web: python launcher.py")
-
         # ls the temp folder
         subprocess.run(["ls", "-l", tmpdir])
 
@@ -73,6 +72,20 @@ def build_app_image(folder, image_name, clear_cache):
 
         if not image_name:
             image_name = app_name
+
+        # replace trac.json's handler field with container field
+        for task_spec in app_spec["tasks"]:
+            del task_spec["handler"]
+            task_spec["container"] = {
+                "image": image_name,
+                "tag": "latest",
+                "command": ["python", "launcher.py", "run"],
+                "args": [task_spec["name"]],
+            }
+
+        # write the trac.json file to the temp folder
+        with open(f"{tmpdir}/trac.json", "w") as f:
+            json.dump(app_spec, f, indent=4)
 
         # call the buildpacks to build the image
         # check if "pack" command is installed, if not, throw an error
@@ -100,15 +113,26 @@ def build_app_image(folder, image_name, clear_cache):
         if clear_cache:
             command.append("--clear-cache")
 
-        # run the command
-        res = subprocess.run(command, check=True)
+        # run the command and stream the output
+        process = subprocess.Popen(
+            command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+        )
+
+        while True:
+            output = process.stdout.readline()
+            if output == b"" and process.poll() is not None:
+                break
+            if output:
+                print(output.strip().decode("utf-8"))
 
         # report any errors
-        if res.returncode != 0:
-            raise Exception("Buildpacks failed to build the image")
-        else:
-            print("Buildpacks successfully built the image")
-            print(f"Image name: {image_name}")
-            print(f"Run the app with docker run --rm {image_name} -- --help")
+
+        if process.returncode != 0:
+            raise Exception("Error building the image")
+
+        # print the image name
+        print(f"Image {image_name} built successfully")
+        print(f"Run the image with the following command:")
+        print(f"docker run --rm {image_name} -- --help")
 
         return image_name, "latest"

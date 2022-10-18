@@ -5,7 +5,9 @@
         {
             "name": "VRP with Time Windows",
             "description": "A sample app for the Vehicle Routing problem with time windows",
-            "handler": "vrp_demo_script.main:main",
+            "handler": {
+                "handler": "vrp_demo_script.main:main"
+            },
             "parameters": {
                 "mount_path": "data/parameters.json",
                 "parameters": [
