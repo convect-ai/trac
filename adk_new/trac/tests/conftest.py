@@ -140,7 +140,7 @@ def task_spec_will_fail(task_spec):
     A task spec that will fail
     """
 
-    task_spec["container"]["args"] = ["exit 1"]
+    task_spec["container"]["args"] = ["echo 'this will failed' && exit 1"]
     return task_spec
 
 
