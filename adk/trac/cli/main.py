@@ -80,6 +80,10 @@ def submit(
     # get the task spec
     task_spec = get_task_spec(app_name, tag, task_name)
 
+    # if tag is specified, override the tag in the task spec
+    if tag:
+        task_spec.container.tag = tag
+
     # submit the task
     job_handle = submit_task(
         task_spec=task_spec,

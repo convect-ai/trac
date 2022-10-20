@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import random
@@ -48,7 +49,9 @@ class K8sExecutor(BaseExecutor):
                     containers=[
                         self.k8s_client.V1Container(
                             name=self.task_spec.name,
-                            image=self.task_spec.container.image,
+                            image=self.task_spec.container.image
+                            + ":"
+                            + self.task_spec.container.tag,
                             command=self.task_spec.container.command,
                             args=self.task_spec.container.args,
                             env=[
@@ -106,7 +109,7 @@ class K8sExecutor(BaseExecutor):
         parameters = self.run_config.parameters
         # convert all the parameters to string
         # TODO: need to handle the composite types
-        parameters = {k: str(v) for k, v in parameters.items()}
+        parameter_mount_path = self.task_spec.parameter.mount_path
         param_config_map = self.k8s_client.V1ConfigMap(
             metadata=self.k8s_client.V1ObjectMeta(
                 generate_name=self.task_spec.name + "-param-",
@@ -115,7 +118,7 @@ class K8sExecutor(BaseExecutor):
                     "app": "trac",
                 },
             ),
-            data={k: v for k, v in parameters.items()},
+            data={os.path.basename(parameter_mount_path): json.dumps(parameters)},
         )
 
         param_config_map = self.k8s_client.CoreV1Api().create_namespaced_config_map(
@@ -132,6 +135,14 @@ class K8sExecutor(BaseExecutor):
             print(f)
             # read the file content and save it to the configmap
             with open(file_path_on_host, "r") as file_on_host:
+                vol_name = f.name
+                # vol_name can only contain lower case letters, numbers, and dashes
+                vol_name = vol_name.lower().replace("_", "-")
+
+                mount_path = f.mount_path
+                if not mount_path.startswith("/"):
+                    mount_path = "/workspace/" + mount_path
+
                 # create a configmap for input files
                 input_file_config_map = self.k8s_client.V1ConfigMap(
                     metadata=self.k8s_client.V1ObjectMeta(
@@ -141,7 +152,7 @@ class K8sExecutor(BaseExecutor):
                             "app": "trac",
                         },
                     ),
-                    data={f.name: file_on_host.read()},
+                    data={os.path.basename(mount_path): file_on_host.read()},
                 )
 
                 input_file_config_map = (
@@ -154,7 +165,7 @@ class K8sExecutor(BaseExecutor):
                 # mount the configmap to the job, and set the file path to the file.mount_path
                 compiled_task.spec.template.spec.volumes.append(
                     self.k8s_client.V1Volume(
-                        name=f.name,
+                        name=vol_name,
                         config_map=self.k8s_client.V1ConfigMapVolumeSource(
                             name=input_file_config_map.metadata.name,
                         ),
@@ -164,9 +175,9 @@ class K8sExecutor(BaseExecutor):
                 # for the mount_path, since the key of the configmap is the file name, we use the directory of the mount_path as the mount_path
                 compiled_task.spec.template.spec.containers[0].volume_mounts.append(
                     self.k8s_client.V1VolumeMount(
-                        name=f.name,
-                        mount_path=f.mount_path,
-                        sub_path=f.name,
+                        name=vol_name,
+                        mount_path=mount_path,
+                        sub_path=os.path.basename(mount_path),
                     )
                 )
 
@@ -180,9 +191,13 @@ class K8sExecutor(BaseExecutor):
             )
         )
         parameter_mount_path = self.task_spec.parameter.mount_path
+        if not parameter_mount_path.startswith("/"):
+            parameter_mount_path = "/workspace/" + parameter_mount_path
         compiled_task.spec.template.spec.containers[0].volume_mounts.append(
             self.k8s_client.V1VolumeMount(
-                name="parameters", mount_path=parameter_mount_path
+                name="parameters",
+                mount_path=parameter_mount_path,
+                sub_path=os.path.basename(parameter_mount_path),
             )
         )
 
@@ -192,6 +207,9 @@ class K8sExecutor(BaseExecutor):
             f for f in self.task_spec.io.files if f.type == FILE_TYPE.OUTPUT
         ]
         for f in output_files:
+            mount_path = f.mount_path
+            if not mount_path.startswith("/"):
+                mount_path = "/workspace/" + mount_path
             compiled_task.spec.template.spec.containers.append(
                 self.k8s_client.V1Container(
                     name=f.name,
@@ -200,32 +218,38 @@ class K8sExecutor(BaseExecutor):
                     # wait for the file to be created, and then cat the file content to stdout
                     args=[
                         "while [ ! -f "
-                        + f.mount_path
+                        + mount_path
                         + " ]; do sleep 1; done; cat "
-                        + f.mount_path
+                        + mount_path
                     ],
                     volume_mounts=[],
                 )
             )
 
             # create an emptyDir volume for the output file and mount it to the sidecar container and the main container
+            vol_name = f.name.lower().replace("_", "-")
+
+            # TODO: this is currently broken, need to fix it
+            # need to mount an empty file to the output file path
+            # then let the app write to the file
+
             compiled_task.spec.template.spec.volumes.append(
                 self.k8s_client.V1Volume(
-                    name=f.name,
+                    name=vol_name,
                     empty_dir=self.k8s_client.V1EmptyDirVolumeSource(),
                 )
             )
 
             compiled_task.spec.template.spec.containers[-1].volume_mounts.append(
                 self.k8s_client.V1VolumeMount(
-                    name=f.name,
+                    name=vol_name,
                     mount_path=os.path.dirname(f.mount_path),
                 )
             )
 
             compiled_task.spec.template.spec.containers[0].volume_mounts.append(
                 self.k8s_client.V1VolumeMount(
-                    name=f.name,
+                    name=vol_name,
                     mount_path=os.path.dirname(f.mount_path),
                 )
             )
