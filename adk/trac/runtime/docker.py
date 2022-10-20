@@ -1,6 +1,7 @@
 import io
 import json
 import logging
+import pathlib
 import tarfile
 import tempfile
 
@@ -17,8 +18,8 @@ class LocalDockerExecutor(BaseExecutor):
     Executor for running tasks locally using docker
     """
 
-    def __init__(self, task_def: TaskDef, run_config: RunConfig):
-        super().__init__(task_def, run_config)
+    def __init__(self, task_def: TaskDef, run_config: RunConfig, **kwargs):
+        super().__init__(task_def, run_config, **kwargs)
         self.docker_client = docker.from_env()
 
     def compile(self):
@@ -70,6 +71,10 @@ class LocalDockerExecutor(BaseExecutor):
         parameter_file.close()
 
         parameter_mount_point = self.task_spec.parameter.mount_path
+        # if parameter_mount_point is a relative path, make it absolute
+        if not parameter_mount_point.startswith("/"):
+            parameter_mount_point = "/workspace/" + parameter_mount_point
+
         vols = {
             parameter_file.name: {
                 "bind": parameter_mount_point,
@@ -87,6 +92,9 @@ class LocalDockerExecutor(BaseExecutor):
                     break
             else:
                 raise Exception(f"Input file {file} not found in task_spec")
+
+            if not mount_path.startswith("/"):
+                mount_path = "/workspace/" + mount_path
 
             vols[run_config.input_files[file]] = {
                 "bind": mount_path,
@@ -132,7 +140,11 @@ class LocalDockerExecutor(BaseExecutor):
 
         for file in self.task_spec.io.files:
             if file.type == FILE_TYPE.OUTPUT:
-                bits, stat = container.get_archive(file.mount_path)
+                mount_path = file.mount_path
+                if not mount_path.startswith("/"):
+                    mount_path = "/workspace/" + mount_path
+
+                bits, stat = container.get_archive(mount_path)
 
                 # create a tar file from the bits
                 tar_file = tarfile.open(fileobj=io.BytesIO(b"".join(bits)), mode="r")

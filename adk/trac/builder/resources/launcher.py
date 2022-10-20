@@ -41,7 +41,7 @@ def run(task_name):
     # import the handler function as specified by the task
     # handler takes the form of <module>:<function>
 
-    handler = task["handler"]
+    handler = task["handler"]["handler"]
     module_name, func_name = handler.split(":")
     module = importlib.import_module(module_name)
     func = getattr(module, func_name)

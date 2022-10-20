@@ -18,7 +18,7 @@ class JOB_STATUS(Enum):
 
 
 class BaseExecutor(ABC):
-    def __init__(self, task_spec: TaskDef, run_config: RunConfig) -> None:
+    def __init__(self, task_spec: TaskDef, run_config: RunConfig, **kwargs) -> None:
         """
         Constructor
         """
@@ -26,7 +26,8 @@ class BaseExecutor(ABC):
         self.run_config = run_config
         self.compiled_task = None
 
-        self.validate()
+        if not "skip_validation" in kwargs:
+            self.validate()
 
     def validate(self):
         """

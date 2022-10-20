@@ -1,5 +1,6 @@
 # definitions about tasks and apps
 
+import re
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -54,10 +55,10 @@ class FilesSpec(BaseModel):
 class ContainerSpec(BaseModel):
     image: str
     tag: str
-    command: List[str]
-    args: List[str]
+    command: Optional[List[str]]
+    args: Optional[List[str]]
     # envs, a list of (name, value) pairs
-    envs: List[Tuple[str, str]] = []
+    envs: Optional[List[Tuple[str, str]]] = []
 
 
 class PythonHandlerSpec(BaseModel):
@@ -96,13 +97,23 @@ class TaskDef(BaseModel):
     # handler definition
     handler: Optional[PythonHandlerSpec] = None
 
+    @validator("name")
+    def validate_name(cls, v):
+        """
+        Name should only contain alphanumeric characters and underscore and "-"
+        """
+        name_pattern = re.compile(r"^[a-zA-Z0-9_-]+$")
+        if not name_pattern.match(v):
+            raise ValueError("Name should only contain alphanumeric characters")
+        return v
+
     @root_validator
     def container_handler_mutex(cls, values):
         """
         Validate if container and handler are mutually exclusive
         """
-        if values.get("container") and values.get("handler"):
-            raise ValueError("Container and handler are mutually exclusive")
+        # if values.get("container") and values.get("handler"):
+        #     raise ValueError("Container and handler are mutually exclusive")
 
         # at leaset one of container and handler should be defined
         if not values.get("container") and not values.get("handler"):

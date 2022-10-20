@@ -17,7 +17,7 @@ class K8sExecutor(BaseExecutor):
     """
 
     def __init__(self, task_spec, run_config, **kwargs):
-        super().__init__(task_spec, run_config)
+        super().__init__(task_spec, run_config, **kwargs)
         # initialize kubernetes client
         k8s.config.load_kube_config()
         self.k8s_client = k8s.client

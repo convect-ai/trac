@@ -75,12 +75,15 @@ def build_app_image(folder, image_name, clear_cache):
 
         # replace trac.json's handler field with container field
         for task_spec in app_spec["tasks"]:
-            del task_spec["handler"]
+            task_name = task_spec["name"]
             task_spec["container"] = {
                 "image": image_name,
                 "tag": "latest",
-                "command": ["python", "launcher.py", "run"],
-                "args": [task_spec["name"]],
+                "args": [
+                    " -- ",
+                    "run",
+                    f"{task_name}",
+                ],
             }
 
         # write the trac.json file to the temp folder
