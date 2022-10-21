@@ -61,11 +61,46 @@ def readme():
 
 
 @cli.command()
-def spec():
+@click.option("--task-name", "-n", required=False, help="Name of the task")
+def spec(task_name):
     # print the task spec
     with open("trac.json") as f:
         spec = json.load(f)
-    print(json.dumps(spec, indent=2))
+
+    if task_name:
+        # find the task with the given name
+        task = None
+        for t in spec["tasks"]:
+            if (
+                t["name"].lower() == task_name.lower()
+                or slugify(t["name"]) == task_name
+            ):
+                task = t
+                break
+
+        if task is None:
+            available_task_names = [t["name"] for t in spec["tasks"]]
+            raise ValueError(
+                f"Task {task_name} not found. Available tasks: {available_task_names}"
+            )
+
+        print(json.dumps(task, indent=2))
+
+    else:
+
+        print(json.dumps(spec, indent=2))
+
+
+@cli.command()
+def tasks():
+    """
+    Print the list of tasks
+    """
+    with open("trac.json") as f:
+        spec = json.load(f)
+
+    for task in spec["tasks"]:
+        print(task["name"])
 
 
 if __name__ == "__main__":
