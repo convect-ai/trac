@@ -1,8 +1,13 @@
 import pytest
-from trac_runtime.executors.docker import JOB_STATUS, LocalDockerExecutor
+from trac.runtime.base import JOB_STATUS
+from trac.runtime.docker import LocalDockerExecutor
+from trac.schema.task import FILE_TYPE, RunConfig, TaskDef
 
 
 def test_docker_executor(task_spec, run_config):
+
+    task_spec = TaskDef.parse_obj(task_spec)
+    run_config = RunConfig.parse_obj(run_config)
 
     executor = LocalDockerExecutor(task_spec, run_config)
     job_handle = executor.submit()
@@ -14,17 +19,20 @@ def test_docker_executor(task_spec, run_config):
         if status == JOB_STATUS.SUCCESS:
             break
     output = executor.get_output(job_handle)
-    assert output["file2"] == b"hello worldhello world\n"
+    assert output["file2"] == b"hello world"
 
     logs = executor.get_logs(job_handle)
     assert logs
 
-    executor.delete(job_handle)
+    executor.cleanup(job_handle)
 
 
-def test_docker_executor_failed_job(failed_task_spec, run_config):
+def test_docker_executor_failed_job(task_spec_will_fail, run_config):
 
-    executor = LocalDockerExecutor(failed_task_spec, run_config)
+    task_spec = TaskDef.parse_obj(task_spec_will_fail)
+    run_config = RunConfig.parse_obj(run_config)
+
+    executor = LocalDockerExecutor(task_spec, run_config)
     job_handle = executor.submit()
     assert job_handle
 
@@ -41,4 +49,4 @@ def test_docker_executor_failed_job(failed_task_spec, run_config):
     logs = executor.get_logs(job_handle)
     assert logs
 
-    executor.delete(job_handle)
+    executor.cleanup(job_handle)

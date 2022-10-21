@@ -1,7 +1,11 @@
-from trac_runtime.executors.k8s import JOB_STATUS, K8sExecutor
+from trac.runtime.k8s import JOB_STATUS, K8sExecutor
+from trac.schema.task import RunConfig, TaskDef
 
 
 def test_k8s_executor(task_spec, run_config):
+    task_spec = TaskDef.parse_obj(task_spec)
+    run_config = RunConfig.parse_obj(run_config)
+
     executor = K8sExecutor(task_spec, run_config)
     job_handle = executor.submit()
     assert job_handle
@@ -16,6 +20,6 @@ def test_k8s_executor(task_spec, run_config):
     assert logs
 
     outputs = executor.get_output(job_handle)
-    assert outputs["file2"] == b"hello worldhello world\n"
+    assert outputs["file2"] == b"hello world"
 
-    executor.delete(job_handle)
+    executor.cleanup(job_handle)

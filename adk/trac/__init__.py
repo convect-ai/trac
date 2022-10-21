@@ -1,1 +1,0 @@
-# register the magic command

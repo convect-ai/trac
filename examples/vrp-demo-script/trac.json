@@ -3,10 +3,12 @@
     "description": "A sample app for the Vehicle Routing problem",
     "tasks": [
         {
-            "name": "VRP with Time Windows",
+            "name": "routing",
             "description": "A sample app for the Vehicle Routing problem with time windows",
-            "handler": "vrp_demo_script.main:main",
-            "parameters": {
+            "handler": {
+                "handler": "vrp_demo_script.main:main"
+            },
+            "parameter": {
                 "mount_path": "data/parameters.json",
                 "parameters": [
                     {
@@ -23,7 +25,7 @@
                     }
                 ]
             },
-            "files": {
+            "io": {
                 "files": [
                     {
                         "name": "locations",
