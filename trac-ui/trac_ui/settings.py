@@ -57,7 +57,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "trac.urls"
+ROOT_URLCONF = "trac_ui.urls"
 
 TEMPLATES = [
     {
@@ -75,7 +75,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "trac.wsgi.application"
+WSGI_APPLICATION = "trac_ui.wsgi.application"
 
 
 # Database
