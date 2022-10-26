@@ -4,14 +4,16 @@ Utility functions to generate API docs for a dataset
 
 import re
 
+from trac.schema.task import FileDef
+
 from .models import DataSet
 
 
-def generate_openapi_paths(url_prefix, resource_schema):
+def generate_openapi_paths(url_prefix, resource_schema: FileDef):
     """
     Generate openapi path (GET, POST, PUT, DELETE) definition for a jsonschema defined resource
     """
-    resource_type = resource_schema["title"].lower()
+    resource_type = resource_schema.name.lower()
 
     paths = {
         f"/{url_prefix}/{resource_type}/": {
@@ -144,14 +146,15 @@ def generate_openapi_paths(url_prefix, resource_schema):
     return paths
 
 
-def generate_openapi_schema_component(resource_schema):
+def generate_openapi_schema_component(resource_schema: FileDef):
     """
     Generate openapi schema component for a jsonschema defined resource
     """
-    resource_type = resource_schema["title"].lower()
+    resource_type = resource_schema.name.lower()
     # sanitize the resource_schema["properties"] by replacing non-alphanumeric characters with _
     properties = {
-        re.sub(r"\W+", "_", k): v for k, v in resource_schema["properties"].items()
+        re.sub(r"\W+", "_", k): v
+        for k, v in resource_schema.file_schema["properties"].items()
     }
 
     schema = {

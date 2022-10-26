@@ -1,7 +1,31 @@
 import hashlib
+import json
 
 from apps.trac_app.models import AppInstance
 from django.db import models
+from trac.schema.task import FileDef
+
+
+# custom json decoder for the schema type
+# schema takes the form {"input_schema": List[FileDef], "output_schema": List[FileDef]}
+class FileDefListDecoder(json.JSONDecoder):
+    def decode(self, s):
+        d = super().decode(s)
+        if isinstance(d, dict):
+            for k, v in d.items():
+                if isinstance(v, list):
+                    d[k] = [FileDef(**x) for x in v]
+        return d
+
+
+# custom json encoder for the schema type
+# schema takes the form {"input_schema": List[FileDef], "output_schema": List[FileDef]}
+class FileDefListEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, FileDef):
+            return o.dict()
+        else:
+            return super().default(o)
 
 
 class DataSet(models.Model):
@@ -15,7 +39,21 @@ class DataSet(models.Model):
         AppInstance, on_delete=models.CASCADE, related_name="datasets"
     )
 
-    schema = models.JSONField(blank=True, null=True)
+    schema = models.JSONField(
+        blank=True, null=True, decoder=FileDefListDecoder, encoder=FileDefListEncoder
+    )
+
+    initialized = models.BooleanField(default=False)
+    url = models.CharField(max_length=1000, blank=True, null=True)
+    backend = models.CharField(
+        max_length=100,
+        choices=[
+            ("excel", "Excel"),
+            ("db", "Database"),
+            ("gsheet", "Google Sheet"),
+        ],
+        default="db",
+    )
 
     def __str__(self):
         return self.name
