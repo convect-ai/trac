@@ -8,7 +8,7 @@ from jsonschema import Draft202012Validator
 from pydantic import BaseModel, Field, root_validator, validator
 
 
-class FILE_TYPE(Enum):
+class FILE_TYPE(str, Enum):
     """File type enumeration"""
 
     INPUT = "input"
