@@ -1,15 +1,18 @@
 import json
+import uuid
+from typing import List
 
 from apps.trac_app.models import AppInstance
 from django.db import transaction
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
-from runtime.local import RuntimeFactory
+from trac.schema.task import FileDef
 
 from .forms import DatasetForm
 from .models import DataSet, Resource
 from .schema_utils import generate_openapi_schema_for_dataset
+from .services.gsheet import GoogleSheetsDataBackend
 
 
 def create_dataset(request, instance_id):
@@ -25,10 +28,25 @@ def create_dataset(request, instance_id):
             app = dataset.app
             # get the app_definition of the app
             app_def = app.app
-            runtime = RuntimeFactory.get_runtime()
             # get the schema of the app_def
-            schema = runtime.schema(app_def.image_name, app_def.image_tag)
+            schema = {
+                "input_schema": app_def.input_schema(),
+                "output_schema": app_def.output_schema(),
+            }
             dataset.schema = schema
+
+            # if the dataset backend is gsheet, call the gsheet api to create a new spreadsheet
+            uniq_identifier = str(uuid.uuid4())[:8]
+            spreadsheet_name = dataset.name + "_" + uniq_identifier
+            if dataset.backend == "gsheet":
+                sheet_url = GoogleSheetsDataBackend.init_spreadsheet(
+                    dataset.schema["input_schema"], spreadsheet_name=spreadsheet_name
+                )
+
+                dataset.url = sheet_url
+
+            dataset.initialized = True
+
             dataset.save()
             return redirect("trac_app:dashboard", instance_id=instance_id)
     else:
@@ -55,9 +73,11 @@ def update_dataset(request, instance_id, dataset_id):
             app = new_dataset.app
             # get the app_definition of the app
             app_def = app.app
-            runtime = RuntimeFactory.get_runtime()
             # get the schema of the app_def
-            schema = runtime.schema(app_def.image_name, app_def.image_tag)
+            schema = {
+                "input_schema": app_def.input_schema(),
+                "output_schema": app_def.output_schema(),
+            }
             new_dataset.schema = schema
             new_dataset.save()
             return redirect("trac_app:dashboard", instance_id=instance_id)
@@ -87,14 +107,18 @@ def dataset_input_view(request, instance_id, dataset_id):
     """
     dataset = DataSet.objects.get(id=dataset_id)
 
-    input_schema = dataset.schema["input_schema"]
+    if dataset.backend == "gsheet":
+        # redirect to the gsheet view in a new tab
+        return redirect(dataset.url)
+
+    input_schema: List[FileDef] = dataset.schema["input_schema"]
 
     workbook_data = []
     for resource_schema in input_schema:
         # resource_schema is a jsonschema that defines an object
-        resource_name = resource_schema["title"]  # sheet name
+        resource_name = resource_schema.name
         # header names
-        field_names = list(resource_schema["properties"].keys())
+        field_names = list(resource_schema.file_schema["properties"].keys())
         # data
         resources = Resource.objects.filter(
             dataset=dataset, resource_type=resource_name
@@ -140,9 +164,9 @@ def dataset_input_view_save(request, instance_id, dataset_id):
                 sheet_name = sheet["name"]
                 # get the schema with title == sheet_name
                 resource_schema = next(
-                    (x for x in input_schema if x["title"] == sheet_name), None
+                    (x for x in input_schema if x.name == sheet_name), None
                 )
-                field_names = list(resource_schema["properties"].keys())
+                field_names = list(resource_schema.file_schema["properties"].keys())
                 cell_data = sheet["data"]
                 # drop the first row
                 cell_data = cell_data[1:]

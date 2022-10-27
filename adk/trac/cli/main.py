@@ -4,6 +4,8 @@ import os
 import click
 
 from ..builder.build import build_app_image
+from ..deploy.deploy import deploy as deploy_app
+from ..deploy.deploy import undeploy as undeploy_app
 from ..runtime.run import get_logs, get_output, get_status, get_task_spec
 from ..runtime.run import submit as submit_task
 from ..schema.task import RunConfig
@@ -188,6 +190,55 @@ def logs(job_handle, backend, backend_config):
 @click.option("--clear-cache", is_flag=True, help="Clear the cache before building")
 def build(folder, image_name, clear_cache):
     build_app_image(folder, image_name, clear_cache)
+
+
+@cli.command()
+@click.option("--image-name", required=True, help="The name of the app image")
+@click.option("--tag", required=False, default="latest", help="Image tag")
+@click.option(
+    "--endpoint",
+    required=False,
+    default="http://localhost:5000",
+    help="Endpoint of the trac UI",
+)
+@click.option(
+    "--description", required=False, default="", help="Description of the app"
+)
+@click.option("--name", required=False, default="", help="Name of the app")
+def deploy(image_name, tag, endpoint, description, name):
+    """
+    Deploy an app
+    """
+    if not name:
+        name = image_name + "-" + tag
+
+    if not description:
+        description = f"App {name}"
+
+    dashboard_url = deploy_app(
+        server_endpoint=endpoint,
+        app_def_name=name,
+        app_def_description=description,
+        app_def_image_name=image_name,
+        app_def_image_tag=tag,
+        app_inst_description=description,
+    )
+
+    print(f"App deployed at {dashboard_url}")
+
+
+@cli.command()
+@click.option(
+    "--endpoint",
+    required=False,
+    default="http://localhost:5000",
+    help="Endpoint of the trac UI",
+)
+def undeploy(endpoint):
+    """
+    Undeploy all apps
+    """
+    undeploy_app(server_endpoint=endpoint)
 
 
 def main():

@@ -76,6 +76,8 @@ def create_executor(
     if backend not in BACKENDS:
         raise Exception(f"Backend {backend} not supported")
 
+    backend_config = backend_config or {}
+
     if not task_spec or not run_config:
         # skip the validation
         return BACKENDS[backend](
@@ -106,6 +108,7 @@ def get_status(
     """
     Get the status of a task
     """
+    backend_config = backend_config or {}
     executor = create_executor(None, None, backend, backend_config)
 
     status = executor.get_status(job_handle=job_handle)

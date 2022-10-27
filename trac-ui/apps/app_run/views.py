@@ -1,14 +1,12 @@
 import json
 
-import nbconvert
-import nbformat
 from apps.trac_app.models import AppDefinition, AppInstance
-from django.http import HttpResponse
 from django.shortcuts import redirect, render
-from runtime.local import RuntimeFactory
+from trac.runtime.run import get_logs
 
 from .forms import create_form_from_parameter_schema
 from .models import AppRun
+from .services import run_app, wait_for_job_completion
 
 
 def create_run(request, instance_id):
@@ -19,12 +17,7 @@ def create_run(request, instance_id):
     app = AppInstance.objects.get(id=instance_id)
     app_def = app.app
     # get the app_def's parameter schema
-
-    runtime = RuntimeFactory.get_runtime()
-    parameter_schema = runtime.spec(
-        image_name=app_def.image_name,
-        image_tag=app_def.image_tag,
-    )
+    parameter_schema = app_def.parameter_schema()
 
     form_cls = create_form_from_parameter_schema(parameter_schema, instance_id)
 
@@ -42,19 +35,13 @@ def create_run(request, instance_id):
             )
 
             # run the app
-            try:
-                nb = runtime.run(
-                    image_name=app_def.image_name,
-                    image_tag=app_def.image_tag,
-                    parameters=data["parameters"],
-                    dataset=data["dataset"],
-                )
+            job_handle = run_app(app_run)
+            # wait for the job to complete
+            wait_for_job_completion(job_handle)
+            app_run.status = "COMPLETED"
+            logs = get_logs(job_handle)
+            app_run.logs = logs
 
-                app_run.output_artifacts = nb
-                app_run.status = "COMPLETED"
-            except Exception as e:
-                app_run.status = "FAILED"
-                app_run.logs = str(e)
             app_run.save()
             return redirect("trac_app:dashboard", instance_id=instance_id)
 
@@ -75,11 +62,7 @@ def update_run(request, instance_id, run_id):
     app = AppInstance.objects.get(id=instance_id)
     app_def = app.app
     # get the app_def's parameter schema
-    runtime = RuntimeFactory.get_runtime()
-    parameter_schema = runtime.spec(
-        image_name=app_def.image_name,
-        image_tag=app_def.image_tag,
-    )
+    parameter_schema = app_def.parameter_schema()
 
     form_cls = create_form_from_parameter_schema(parameter_schema, instance_id)
 
@@ -129,13 +112,4 @@ def view_run_result(request, instance_id, run_id):
     """
     View the result of a run under an app instance when request is GET
     """
-    app_run = AppRun.objects.get(id=run_id)
-
-    nb_str = json.dumps(app_run.output_artifacts)
-    nb = nbformat.reads(nb_str, as_version=4)
-
-    # render the notebook in html format
-    htmp_exporter = nbconvert.HTMLExporter()
-    html, _ = htmp_exporter.from_notebook_node(nb)
-
-    return HttpResponse(html)
+    pass

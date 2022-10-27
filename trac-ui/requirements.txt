@@ -1,7 +1,0 @@
-crispy-bootstrap5
-django
-django-crispy-forms
-djangorestframework
-docker
-nbconvert
-nbformat
