@@ -63,15 +63,12 @@ class DockerUtils:
             auto_remove=True,
         )
 
-        print(logs)
-
         # get the output
         output = logs.decode("utf-8")
 
         try:
             spec = json.loads(output)
         except json.decoder.JSONDecodeError as ex:
-            print(f"Error: {ex}")
             raise Exception("The app spec is not valid")
 
         if not task_name:

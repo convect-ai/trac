@@ -34,12 +34,13 @@ class AppDefinition(models.Model):
         return DockerUtils.tasks(self.image_name, self.image_tag)
 
     @lru_cache
-    def task_spec(self, task_name):
+    def task_spec(self, task_name=None):
         """
         Return the spec of a task
+        If task_name is None, return the default task
         """
-
-        return DockerUtils.spec(self.image_name, self.image_tag, task_name=task_name)
+        task_name = task_name or self.default_task
+        return DockerUtils.spec(self.image_name, self.image_tag, task_name)
 
     @lru_cache
     def input_schema(self, task_name=None):

@@ -1,8 +1,13 @@
+from typing import List
+
 from apps.data_gateway.models import DataSet
 from django import forms
+from trac.schema.task import ParameterDef
 
 
-def create_form_from_parameter_schema(parameter_schema, instance_id):
+def create_form_from_parameter_schema(
+    parameter_schema: List[ParameterDef], instance_id
+):
     # paramter_schema is a jsonschema
     # create a dynamic form based on the parameter_schema
     class AppRunForm(forms.Form):
@@ -15,7 +20,18 @@ def create_form_from_parameter_schema(parameter_schema, instance_id):
 
         def __init__(self, *args, **kwargs):
             super(AppRunForm, self).__init__(*args, **kwargs)
-            properties = parameter_schema["properties"]
+            properties = {}
+            for param_def in parameter_schema:
+                param_name = param_def.name
+                param_type = param_def.type
+                default = param_def.default
+                description = param_def.description
+
+                properties[param_name] = {
+                    "type": param_type,
+                    "default": default,
+                    "description": description,
+                }
 
             for field, value in properties.items():
                 # get the field type
@@ -41,7 +57,8 @@ def create_form_from_parameter_schema(parameter_schema, instance_id):
             cleaned_data = super(AppRunForm, self).clean()
             # remove the fields that are in the parameter_schema
             parameters = {}
-            for field in parameter_schema["properties"].keys():
+            param_names = [param_def.name for param_def in parameter_schema]
+            for field in param_names:
                 value = cleaned_data.pop(field)
                 parameters[field] = value
             cleaned_data["parameters"] = parameters

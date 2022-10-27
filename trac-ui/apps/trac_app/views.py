@@ -2,7 +2,6 @@ from django.shortcuts import render
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.serializers import ModelSerializer, ValidationError
 from rest_framework.viewsets import ModelViewSet
-from runtime.local import RuntimeFactory
 
 from .models import AppDefinition, AppInstance
 
@@ -11,18 +10,6 @@ class AppDefinitionSerializer(ModelSerializer):
     class Meta:
         model = AppDefinition
         fields = "__all__"
-
-    def validate(self, attrs):
-        image_name = attrs["image_name"]
-        image_tag = attrs["image_tag"]
-
-        runtime = RuntimeFactory.get_runtime()
-        try:
-            runtime.validate_image_exists(image_name, image_tag)
-        except Exception as e:
-            raise ValidationError(e)
-
-        return attrs
 
 
 class AppInstanceSerializer(ModelSerializer):

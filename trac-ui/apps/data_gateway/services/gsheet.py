@@ -40,6 +40,10 @@ class GoogleSheetsDataBackend:
         for schema in schemas:
             cls.init_worksheet(spreadsheet, schema)
 
+        # remove the default worksheet Sheet1
+        default_worksheet = spreadsheet.worksheet("Sheet1")
+        spreadsheet.del_worksheet(default_worksheet)
+
         # share the spreadsheet with the user
         # TODO: this is hardcoded for the testing user now
         spreadsheet.share("dayeye2006@gmail.com", perm_type="user", role="writer")
