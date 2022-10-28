@@ -9,7 +9,7 @@ const config = {
   title: 'TRAC',
   tagline: 'Make your data science solution into an application',
   url: 'https://convect-ai.github.io/',
-  baseUrl: '/',
+  baseUrl: '/trac/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
