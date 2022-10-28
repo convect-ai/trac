@@ -1,13 +1,15 @@
 import csv
+import io
 import logging
 import tempfile
 import time
+import uuid
 from typing import Dict, List
 
-from trac.runtime.run import JOB_STATUS, RunConfig, get_status, submit
+from trac.runtime.run import JOB_STATUS, RunConfig, get_output, get_status, submit
 from trac.schema.task import FileDef
 
-from ..data_gateway.models import DataSet
+from ..data_gateway.models import DataSet, Resource
 from ..data_gateway.services.gsheet import GoogleSheetsDataBackend
 from ..trac_app.models import AppDefinition, AppInstance
 from .models import AppRun
@@ -127,3 +129,88 @@ def wait_for_job_completion(job_handle):
             raise Exception("Job failed")
         else:
             time.sleep(1)
+
+
+def fetch_job_output(app_run: AppRun) -> DataSet:
+    """
+    Fetch the output files from the job
+    Create a DataSet object that holds the contents
+    """
+
+    # get the app_def from the instance_id
+    app = AppInstance.objects.get(id=app_run.app.id)
+    app_def = app.app
+
+    task_spec = app_def.task_spec()
+
+    job_handle = app_run.job_handle
+
+    output = get_output(
+        job_handle=job_handle,
+        task_spec=task_spec,
+        backend="docker",
+    )
+
+    # get the output schema
+    output_schema: List[FileDef] = app_run.dataset.schema["output_schema"]
+    data_backend = app_run.dataset.backend
+
+    output_dataset = DataSet(
+        name=app_run.name + "_output",
+        schema=app_run.dataset.schema,
+        backend=data_backend,
+        app=app,
+    )
+
+    # parse output as a list of dicts
+    resource_map = {}
+    for file_def in output_schema:
+        resource_type = file_def.name
+
+        contents = output[resource_type]
+        # parse the contents as a csv in bytes format
+        contents = io.StringIO(contents.decode("utf-8"))
+        reader = csv.DictReader(contents, delimiter=",")
+        records = [row for row in reader]
+
+        resource_map[resource_type] = records
+
+    if data_backend == "db":
+        # save the resources to db in bulk
+        for resource_type, records in resource_map.items():
+            Resource.objects.bulk_create(
+                [
+                    Resource(
+                        dataset=output_dataset,
+                        resource_type=resource_type,
+                        value=record,
+                    )
+                    for record in records
+                ]
+            )
+    elif data_backend == "gsheet":
+        uniq_identifier = str(uuid.uuid4())[:8]
+        spreadsheet_name = output_dataset.name + "_" + uniq_identifier
+        sheet_url = GoogleSheetsDataBackend.init_spreadsheet(
+            spreadsheet_name=spreadsheet_name,
+            schemas=output_schema,
+        )
+
+        # fill in the data
+        for resource_type, records in resource_map.items():
+            GoogleSheetsDataBackend.write_records(
+                spreadsheet_url=sheet_url,
+                worksheet_name=resource_type,
+                records=records,
+            )
+
+        output_dataset.url = sheet_url
+        output_dataset.initialized = True
+
+    else:
+        raise Exception("Unknown backend")
+
+    output_dataset.save()
+
+    # return the new dataset
+    return output_dataset

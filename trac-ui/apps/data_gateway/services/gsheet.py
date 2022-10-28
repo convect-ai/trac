@@ -78,3 +78,12 @@ class GoogleSheetsDataBackend:
             data[worksheet.title] = worksheet.get_all_records()
 
         return data
+
+    @classmethod
+    def write_records(cls, spreadsheet_url, worksheet_name, records):
+        """
+        Write records to a worksheet
+        """
+        spreadsheet = cls.get_client().open_by_url(spreadsheet_url)
+        worksheet = spreadsheet.worksheet(worksheet_name)
+        worksheet.append_rows([list(record.values()) for record in records])

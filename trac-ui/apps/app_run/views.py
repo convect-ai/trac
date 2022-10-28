@@ -6,7 +6,7 @@ from trac.runtime.run import get_logs
 
 from .forms import create_form_from_parameter_schema
 from .models import AppRun
-from .services import run_app, wait_for_job_completion
+from .services import fetch_job_output, run_app, wait_for_job_completion
 
 
 def create_run(request, instance_id):
@@ -36,6 +36,7 @@ def create_run(request, instance_id):
 
             # run the app
             job_handle = run_app(app_run)
+            app_run.job_handle = job_handle
             # wait for the job to complete
             wait_for_job_completion(job_handle)
             app_run.status = "COMPLETED"
@@ -112,4 +113,23 @@ def view_run_result(request, instance_id, run_id):
     """
     View the result of a run under an app instance when request is GET
     """
-    pass
+    app_run = AppRun.objects.get(id=run_id)
+
+    # check if the app_run already has an output dataset
+    if not app_run.output_dataset:
+        # fetch the output dataset
+        output_dataset = fetch_job_output(app_run)
+        app_run.output_dataset = output_dataset
+        app_run.save()
+    else:
+        output_dataset = app_run.output_dataset
+
+    if output_dataset.backend == "gsheet":
+        return redirect(
+            output_dataset.url,
+        )
+    elif output_dataset.backend == "db":
+        raise NotImplementedError
+
+    else:
+        raise NotImplementedError
