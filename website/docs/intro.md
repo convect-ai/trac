@@ -1,48 +1,44 @@
 ---
 sidebar_position: 1
-sidebar_label: Introduction
+sidebar_label: What is TRAC?
 ---
 
-# Tutorial Intro
+# TRAC Introduction
 
-Let's discover **Docusaurus in less than 5 minutes**.
+## What is TRAC
 
-## Getting Started
+TRAC stands for The Runner for Application as Containers. It packages a locally developed Data Science solution (either in the form of scripts or notebooks) in a container and converts it into an interactive application.
 
-Get started by **creating a new site**.
+### What problem does it solve
 
-Or **try Docusaurus immediately** with **[docusaurus.new](https://docusaurus.new)**.
+TRAC solves the following problem for Data Scientists/Anlysts and engineers who are developing data-driven solutions:
 
-### What you'll need
+> I have a working `main.py`, then what?
 
-- [Node.js](https://nodejs.org/en/download/) version 16.14 or above:
-  - When installing Node.js, you are recommended to check all checkboxes related to dependencies.
+Normally, one will work with Frontend and Backend engineers to convert the local script into a callable web service, develop an UI so stakeholders play around with the soluton, and deploy the application to a hosting platform.
+This apparently requires lots of skills in various fields. It's hard to do all the things in a "Fullstack" way.
 
-## Generate a new site
+TRAC eases the process by letting Data Scientists/Analysts focus on what it matters -- developing the core data science solution. It handles the rest -- UI, data management, deployment on behalf of an application author. So you can quickly make your solution "usable" by stakehodlers and make impacts.
 
-Generate a new Docusaurus site using the **classic template**.
 
-The classic template will automatically be added to your project after you run the command:
 
-```bash
-npm init docusaurus@latest my-website classic
-```
+## Features
 
-You can type this command into Command Prompt, Powershell, Terminal, or any other integrated terminal of your code editor.
+- Automatically generates UI for your application.
+- Automatically generates API for your application.
+- Automatically manages backend deployments for your application.
+- Your application data can live in multiple backends, including Google Sheets, Microsoft Excel, and managed Database, so you can share them easily with stakeholders.
+- Helps you manage datasets and experiements for your application.
 
-The command also installs all necessary dependencies you need to run Docusaurus.
 
-## Start your site
+## Usage
 
-Run the development server:
+On the high level, to publish a TRAC app, you need the following steps.
+1. Develop your data science solution locally, either in the form of scripts or notebooks. Make sure it runs smoothly on your local machine.
+2. Declare the datasets and their formats your solution requires and produces.
+3. Declare the configurations your solution is able to handle.
+4. Build an application image.
+5. Publish the image to TRAC platform.
+6. Send the published URL to stakeholders so they can start to use your application.
 
-```bash
-cd my-website
-npm run start
-```
-
-The `cd` command changes the directory you're working with. In order to work with your newly created Docusaurus site, you'll need to navigate the terminal there.
-
-The `npm run start` command builds your website locally and serves it through a development server, ready for you to view at http://localhost:3000/.
-
-Open `docs/intro.md` (this page) and edit some lines: the site **reloads automatically** and displays your changes.
+You can view a [concrete example](docs/tutorial-vrp/01-develop-locally.md) on how to publish a Vehicle Routing application for fleet management operations.
