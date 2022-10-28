@@ -44,6 +44,7 @@
                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
                                     <a class="dropdown-item"
                                         href="{% url 'app_run:update_run' instance_id run.id %}">Edit</a>
+                                    <a href="{% url 'app_run:view_logs' instance_id run.id %}" class="dropdown-item">View logs</a>
                                     <form action="{% url 'app_run:delete_run' instance_id run.id %}">
                                         {% csrf_token %}
                                         <a type="submit" class="dropdown-item">Delete</a>

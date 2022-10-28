@@ -11,4 +11,5 @@ urlpatterns = [
     path(
         "<int:instance_id>/runs/<int:run_id>/view/", view_run_result, name="view_result"
     ),
+    path("<int:instance_id>/runs/<int:run_id>/logs/", view_run_logs, name="view_logs"),
 ]
