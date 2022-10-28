@@ -8,6 +8,9 @@ class AppRun(models.Model):
     description = models.CharField(max_length=100)
     app = models.ForeignKey(AppInstance, on_delete=models.CASCADE, related_name="runs")
     dataset = models.ForeignKey(DataSet, on_delete=models.CASCADE, related_name="runs")
+    output_dataset = models.ForeignKey(
+        DataSet, on_delete=models.CASCADE, related_name="resulting_runs", null=True
+    )
     parameters = models.JSONField(null=True, blank=True)
     status = models.CharField(
         max_length=100,
@@ -21,6 +24,7 @@ class AppRun(models.Model):
     )
     output_artifacts = models.JSONField(null=True, blank=True)
     logs = models.TextField(null=True, blank=True)
+    job_handle = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
         return self.name
