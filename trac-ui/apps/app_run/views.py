@@ -1,4 +1,4 @@
-import json
+import re
 
 from apps.trac_app.models import AppDefinition, AppInstance
 from django.shortcuts import redirect, render
@@ -133,3 +133,18 @@ def view_run_result(request, instance_id, run_id):
 
     else:
         raise NotImplementedError
+
+
+def view_run_logs(request, instance_id, run_id):
+    """
+    View the logs of an app run
+    """
+
+    app_run = AppRun.objects.get(id=run_id)
+    logs = app_run.logs
+
+    return render(
+        request,
+        "app_run/view_run_logs.html",
+        {"logs": logs, "instance_id": instance_id, "run_id": run_id},
+    )

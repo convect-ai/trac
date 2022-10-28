@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+
+<pre>
+{{ logs }}
+</pre>
+
+<a href="{% url 'trac_app:dashboard' instance_id %}" class="btn btn-primary m-3">
+    Back
+</a>
+
+{% endblock %}
