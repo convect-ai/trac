@@ -1,0 +1,117 @@
+{
+    "name": "Time series forecasting",
+    "description": "Automatic time series forecasting using multiple models",
+    "tasks": [
+        {
+            "name": "predict",
+            "description": "Train multiple models on top of data and predict future time series values",
+            "handler": {
+                "handler": "auto_timeseries.main:main"
+            },
+            "parameter": {
+                "mount_path": "data/parameters.json",
+                "parameters": [
+                    {
+                        "name": "forecast_length",
+                        "type": "integer",
+                        "description": "Length of the forecast horizon",
+                        "default": 4
+                    },
+                    {
+                        "name": "prediction_interval",
+                        "type": "number",
+                        "description": "Prediction interval",
+                        "default": 0.95
+                    },
+                    {
+                        "name": "model_list",
+                        "type": "string",
+                        "description": "Modes of model training -- superfast, fast, default",
+                        "default": "fast"
+                    },
+                    {
+                        "name": "transformer_list",
+                        "type": "string",
+                        "description": "Modes of feature generation -- superfast, fast, default",
+                        "default": "fast"
+                    },
+                    {
+                        "name": "drop_most_recent",
+                        "type": "integer",
+                        "description": "Drop most recent data points",
+                        "default": 0
+                    },
+                    {
+                        "name": "num_validations",
+                        "type": "integer",
+                        "description": "Number of folds used in cross validations to use",
+                        "default": 2
+                    },
+                    {
+                        "name": "validation_method",
+                        "type": "string",
+                        "description": "Method of cross validation -- backwards, even, seasonal, similarity",
+                        "default": "backwards"
+                    },
+                    {
+                        "name": "max_generations",
+                        "type": "integer",
+                        "description": "Maximum number of generations to use in genetic algorithm",
+                        "default": 2
+                    }
+                ]
+            },
+            "io": {
+                "files": [
+                    {
+                        "name": "ts",
+                        "mount_path": "data/ts.csv",
+                        "type": "input",
+                        "description": "Time series input data in the long form",
+                        "file_schema": {
+                            "type": "object",
+                            "properties": {
+                                "datetime": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "description": "Timestamp of the data point"
+                                },
+                                "value": {
+                                    "type": "number",
+                                    "description": "Value of the data point"
+                                },
+                                "series_id": {
+                                    "type": "string",
+                                    "description": "Id of the time series"
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "name": "forecast",
+                        "mount_path": "data/output/forecast.csv",
+                        "type": "output",
+                        "description": "Forecasted time series values",
+                        "file_schema": {
+                            "type": "object",
+                            "properties": {
+                                "SeriesID": {
+                                    "type": "string",
+                                    "description": "Id of the time series"
+                                },
+                                "Value": {
+                                    "type": "number",
+                                    "description": "Value of the data point"
+                                },
+                                "PredictionInterval": {
+                                    "type": "string",
+                                    "description": "Prediction interval"
+                                }
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}

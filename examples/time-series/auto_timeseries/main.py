@@ -54,7 +54,7 @@ def print_model_summary(model):
 
 def write_predictions(model):
     forecast = model.predict()
-    forecast.long_form_results().to_csv("data/forecast.csv", index=False)
+    forecast.long_form_results().to_csv("data/output/forecast.csv", index=False)
 
 
 def main():
